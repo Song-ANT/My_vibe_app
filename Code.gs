@@ -1,7 +1,16 @@
 /**
  * 웹앱 진입점 (GET 요청 처리)
+ * - 일반 접속 시: 기존 HTML 화면 렌더링
+ * - Vercel 앱 연동 API 호출 시 (?action=getExpenseData): JSON 데이터 반환
  */
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'getExpenseData') {
+    var result = getExpenseData();
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   var template = HtmlService.createTemplateFromFile('index');
   return template.evaluate()
     .setTitle('Purrfect Budget - 지출 관리')
@@ -10,10 +19,51 @@ function doGet() {
 }
 
 /**
- * 지출 시트 가져오기 또는 생성
+ * Vercel 외부 웹앱 연동용 POST API 진입점
+ * (text/plain JSON 바디를 수신하여 CORS Preflight 없이 개인 구글 드라이브 시트에 저장/조회)
+ */
+function doPost(e) {
+  try {
+    var body = JSON.parse(e.postData.contents || '{}');
+    var action = body.action;
+    var res = { success: false, message: '알 수 없는 요청입니다.' };
+
+    if (action === 'getExpenseData') {
+      res = getExpenseData();
+    } else if (action === 'saveExpense') {
+      res = saveExpense(body.payload || {});
+    } else if (action === 'uploadExpensesCsv') {
+      res = uploadExpensesCsv(body.csvText || '');
+    } else if (action === 'syncAll') {
+      res = syncAllExpenses(body.list || []);
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify(res))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, message: 'API 오류: ' + err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * 지출 시트 가져오기 또는 생성 (개인 구글 드라이브 내 활성 스프레드시트 또는 자동 생성)
  */
 function getExpenseSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) {
+    var props = PropertiesService.getUserProperties();
+    var savedId = props.getProperty('PURRFECT_SHEET_ID');
+    if (savedId) {
+      try { ss = SpreadsheetApp.openById(savedId); } catch (e) { ss = null; }
+    }
+    if (!ss) {
+      ss = SpreadsheetApp.create('Purrfect_Budget_지출원장');
+      props.setProperty('PURRFECT_SHEET_ID', ss.getId());
+    }
+  }
   var sheetName = '지출내역';
   var sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
@@ -63,7 +113,7 @@ function saveExpense(data) {
     sheet.getRange(appendedRow, 3).setNumberFormat('#,##0');
 
     var dateParts = data.date.split('-');
-    var successMsg = parseInt(dateParts[1], 10) + '월 ' + parseInt(dateParts[2], 10) + '일 ' + data.place.trim() + ' (' + amount.toLocaleString('ko-KR') + '원) 저장되었습니다.';
+    var successMsg = parseInt(dateParts[1], 10) + '월 ' + parseInt(dateParts[2], 10) + '일 ' + data.place.trim() + ' (' + amount.toLocaleString('ko-KR') + '원) 개인 드라이브에 저장되었습니다.';
 
     return { success: true, message: successMsg };
   } catch (err) {
@@ -123,21 +173,54 @@ function uploadExpensesCsv(csvText) {
     }
 
     sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAdd.length, 7).setValues(rowsToAdd);
-    return { success: true, message: rowsToAdd.length + '건의 지출 내역을 성공적으로 일괄 등록했습니다.' };
+    return { success: true, message: rowsToAdd.length + '건의 지출 내역을 개인 드라이브에 일괄 등록했습니다.' };
   } catch (err) {
     return { success: false, message: 'CSV 업로드 중 오류 발생: ' + err.toString() };
   }
 }
 
 /**
- * [화면 2 & 3] 전체 데이터 조회 (오류 해결 핵심 함수)
+ * 로컬 데이터를 개인 드라이브 시트로 일괄 동기화
+ */
+function syncAllExpenses(list) {
+  try {
+    var sheet = getExpenseSheet();
+    var lastRow = sheet.getLastRow();
+    var currentId = (lastRow <= 1) ? 1 : lastRow;
+    var rowsToAdd = [];
+
+    for (var i = 0; i < list.length; i++) {
+      var item = list[i];
+      if (!item || !item.date) continue;
+      rowsToAdd.push([
+        currentId++,
+        String(item.date),
+        Number(item.amount) || 0,
+        String(item.category || '기타'),
+        String(item.place || '미지정'),
+        String(item.payment || '--'),
+        String(item.memo || '')
+      ]);
+    }
+
+    if (rowsToAdd.length > 0) {
+      sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAdd.length, 7).setValues(rowsToAdd);
+    }
+    return { success: true, message: rowsToAdd.length + '건이 개인 드라이브 시트에 동기화되었습니다.' };
+  } catch (err) {
+    return { success: false, message: '동기화 오류: ' + err.toString() };
+  }
+}
+
+/**
+ * [화면 2 & 3] 전체 데이터 조회
  */
 function getExpenseData() {
   try {
     var sheet = getExpenseSheet();
     var lastRow = sheet.getLastRow();
     if (lastRow <= 1) {
-      return { success: true, list: [] };
+      return { success: true, list: [], sheetUrl: sheet.getParent().getUrl() };
     }
 
     var values = sheet.getRange(2, 1, lastRow - 1, 7).getValues();
@@ -167,7 +250,7 @@ function getExpenseData() {
       });
     }
 
-    return { success: true, list: list };
+    return { success: true, list: list, sheetUrl: sheet.getParent().getUrl() };
   } catch (err) {
     return { success: false, message: '데이터 불러오기 오류: ' + err.toString() };
   }

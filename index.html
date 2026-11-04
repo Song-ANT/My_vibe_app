@@ -645,13 +645,166 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 3px;
+      gap: 4px;
+    }
+    .header-top-tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .header-vercel-tag {
       font-size: 9.5px;
       font-weight: 700;
       color: #34d399;
       letter-spacing: -0.2px;
+    }
+    .drive-connect-btn {
+      font-size: 10px;
+      font-weight: 700;
+      color: #fbbf24;
+      background: #1f2430;
+      border: 1px solid #353e52;
+      padding: 3px 7px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .drive-connect-btn.connected {
+      color: #34d399;
+      background: #0d281e;
+      border-color: #164e3b;
+    }
+    .drive-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #181c24;
+      border: 1px solid #262e3d;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .drive-status-bar.connected {
+      border-color: #164e3b;
+      background: #0f221b;
+      color: #a7f3d0;
+    }
+    .drive-status-action {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #34d399;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* 개인 구글 드라이브 연결 모달 */
+    .drive-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 10, 13, 0.82);
+      backdrop-filter: blur(4px);
+      z-index: 1500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .drive-modal-backdrop.open {
+      display: flex;
+    }
+    .drive-modal {
+      width: 100%;
+      max-height: 90%;
+      background: #181c24;
+      border: 1px solid #2d3648;
+      border-radius: 14px;
+      padding: 16px 14px;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+    }
+    .drive-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #252b38;
+    }
+    .drive-modal-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .drive-modal-close {
+      background: none;
+      border: none;
+      color: #7d8799;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+    .drive-mode-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .drive-tab-btn {
+      flex: 1;
+      height: 30px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #14171d;
+      color: #7b879c;
+      border: 1px solid #262e3d;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .drive-tab-btn.active {
+      background: #252e3d;
+      color: #34d399;
+      border-color: #34d399;
+    }
+    .drive-step-box {
+      background: #14171d;
+      border: 1px solid #242c3b;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .drive-step-box strong {
+      color: #e2e8f0;
+    }
+    .drive-mini-btn {
+      width: 100%;
+      height: 34px;
+      background: #252d3a;
+      color: #e2e8f0;
+      border: 1px solid #354154;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .drive-mini-btn.primary {
+      background: #34d399;
+      color: #061e14;
+      border: none;
+    }
+    .drive-mini-btn.danger {
+      background: #2c1619;
+      color: #fca5a5;
+      border-color: #572228;
     }
   </style>
 </head>
@@ -685,8 +838,64 @@
         </div>
       </div>
       <div class="header-right-wrap">
-        <span class="header-vercel-tag">vercel버전</span>
+        <div class="header-top-tags">
+          <span class="header-vercel-tag">vercel버전</span>
+          <button type="button" class="drive-connect-btn" id="driveConnectBtn" onclick="openDriveModal()">☁️ 드라이브 연결</button>
+        </div>
         <div class="header-badge num-font" id="headerCount">v2.1</div>
+      </div>
+    </div>
+
+    <!-- 개인 구글 드라이브 연동 설정 모달 -->
+    <div class="drive-modal-backdrop" id="driveModal">
+      <div class="drive-modal">
+        <div class="drive-modal-header">
+          <span class="drive-modal-title">☁️ 개인 구글 드라이브 저장소 설정</span>
+          <button type="button" class="drive-modal-close" onclick="closeDriveModal()">✕</button>
+        </div>
+
+        <div class="drive-mode-tabs">
+          <button type="button" class="drive-tab-btn active" id="tabBtnGas" onclick="switchDriveTab('GAS')">시트 웹앱 연결 (추천)</button>
+          <button type="button" class="drive-tab-btn" id="tabBtnOauth" onclick="switchDriveTab('OAUTH')">Google OAuth 직접 연결</button>
+        </div>
+
+        <!-- 탭 1: 구글 스프레드시트 Apps Script URL 연결 -->
+        <div id="driveTabGas">
+          <div class="drive-step-box">
+            <strong>내 구글 드라이브(시트)를 영구 저장소로 쓰는 법 (1회 설정):</strong><br>
+            1. 아래 버튼으로 <strong>연동용 서버 코드(Code.gs)</strong>를 복사합니다.<br>
+            2. 내 구글 드라이브에서 새 스프레드시트를 만들고 <strong>확장 프로그램 &gt; Apps Script</strong>에 붙여넣습니다.<br>
+            3. 우측 상단 <strong>배포 &gt; 새 배포 &gt; 웹 앱</strong> (액세스 권한: <strong>모든 사용자</strong>) 배포 후 나온 <strong>웹 앱 URL</strong>을 아래에 붙여넣으세요!
+            <button type="button" class="drive-mini-btn" onclick="copyGasServerCode()">📋 1단계: 연동용 Code.gs 코드 복사하기</button>
+            <button type="button" class="drive-mini-btn" onclick="window.open('https://sheets.new', '_blank')">📄 2단계: 내 구글 드라이브에 새 시트 만들기</button>
+          </div>
+
+          <div class="form-group" style="margin-bottom:8px;">
+            <label for="gasWebAppUrl">Google Apps Script 웹 앱 URL (/exec)</label>
+            <input type="text" id="gasWebAppUrl" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
+
+          <button type="button" class="drive-mini-btn primary" onclick="saveAndTestGasUrl()">🔗 내 구글 드라이브 연결 및 동기화</button>
+          <button type="button" class="drive-mini-btn" onclick="syncLocalToDrive()">📤 현재 브라우저 기록을 드라이브로 내보내기</button>
+          <a id="connectedSheetLink" href="#" target="_blank" style="display:none; margin-top:8px; text-align:center; font-size:11px; color:#34d399; font-weight:700; text-decoration:underline;">📂 연결된 내 구글 드라이브 스프레드시트 열기</a>
+        </div>
+
+        <!-- 탭 2: Google Drive REST API OAuth 직접 연결 -->
+        <div id="driveTabOauth" style="display:none;">
+          <div class="drive-step-box">
+            <strong>Google Drive API 직접 로그인 (Purrfect_Budget_Data.json):</strong><br>
+            본인의 Google Cloud OAuth 2.0 클라이언트 ID(웹 애플리케이션)를 입력하고 로그인하면 내 구글 드라이브에 <code>Purrfect_Budget_Data.json</code> 파일을 직접 생성하여 저장합니다.<br>
+            <span style="color:#fbbf24;">* 승인된 자바스크립트 원본에 현재 Vercel 주소를 추가해 주세요.</span>
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label for="googleClientId">Google OAuth Client ID</label>
+            <input type="text" id="googleClientId" placeholder="xxxx.apps.googleusercontent.com">
+          </div>
+          <button type="button" class="drive-mini-btn primary" onclick="connectGoogleDriveOAuth()">🔑 Google 계정 로그인 및 드라이브 연결</button>
+        </div>
+
+        <hr style="border:none; border-top:1px solid #252b38; margin:12px 0 8px 0;">
+        <button type="button" class="drive-mini-btn danger" onclick="disconnectDriveStorage()">연결 해제 (브라우저 임시 저장소 사용)</button>
       </div>
     </div>
 
@@ -698,6 +907,11 @@
 
         <!-- [슬라이드 0: 입력 화면] -->
         <div class="slide-page" id="pageInput">
+          <div class="drive-status-bar" id="driveStatusBar">
+            <span id="driveStatusText">💾 현재 저장소: 브라우저 임시 저장소</span>
+            <button type="button" class="drive-status-action" onclick="openDriveModal()">내 드라이브 연결 &gt;</button>
+          </div>
+
           <form id="expenseForm" onsubmit="handleFormSubmit(event)">
             <!-- 상단 하이라이트 금액 입력 -->
             <div class="amount-hero-wrap">
@@ -853,24 +1067,349 @@
     <div class="phone-home-indicator"></div>
   </div>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
-    // Vercel 등 일반 웹 브라우저 환경(Google Apps Script 외부)에서도 동일하게 동작하도록 localStorage 폴백 지원
-    if (typeof window.google === 'undefined' || !window.google.script) {
-      (function() {
-        var STORAGE_KEY = 'purrfect_budget_expenses_v1';
-        function loadStored() {
-          try {
-            var raw = localStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw) : [];
-          } catch (e) {
-            return [];
+    // =========================================================================
+    // 개인 구글 드라이브 저장소 연동 엔진 (시트 웹앱 URL / Google Drive OAuth / 로컬 폴백)
+    // =========================================================================
+    var STORAGE_KEY = 'purrfect_budget_expenses_v1';
+    var DRIVE_CONFIG_KEY = 'purrfect_drive_config_v1';
+    var googleOAuthToken = sessionStorage.getItem('purrfect_google_oauth_token') || '';
+    var googleDriveFileId = localStorage.getItem('purrfect_google_drive_file_id') || '';
+
+    function getDriveConfig() {
+      try {
+        var raw = localStorage.getItem(DRIVE_CONFIG_KEY);
+        return raw ? JSON.parse(raw) : { mode: 'LOCAL', gasUrl: '', clientId: '', sheetUrl: '' };
+      } catch (e) {
+        return { mode: 'LOCAL', gasUrl: '', clientId: '', sheetUrl: '' };
+      }
+    }
+
+    function saveDriveConfig(cfg) {
+      try {
+        localStorage.setItem(DRIVE_CONFIG_KEY, JSON.stringify(cfg));
+      } catch (e) {}
+      updateDriveStatusUI();
+    }
+
+    function loadLocalExpenses() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveLocalExpenses(list) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function updateDriveStatusUI() {
+      var cfg = getDriveConfig();
+      var btn = document.getElementById('driveConnectBtn');
+      var bar = document.getElementById('driveStatusBar');
+      var txt = document.getElementById('driveStatusText');
+      var sheetLink = document.getElementById('connectedSheetLink');
+
+      if (!btn || !bar || !txt) return;
+
+      if (cfg.mode === 'GAS' && cfg.gasUrl) {
+        btn.textContent = '🟢 드라이브 연결됨';
+        btn.classList.add('connected');
+        bar.classList.add('connected');
+        txt.textContent = '☁️ 저장소: 내 구글 드라이브 (스프레드시트)';
+        if (sheetLink && cfg.sheetUrl) {
+          sheetLink.href = cfg.sheetUrl;
+          sheetLink.style.display = 'block';
+        }
+      } else if (cfg.mode === 'OAUTH' && googleOAuthToken) {
+        btn.textContent = '🟢 드라이브 연결됨';
+        btn.classList.add('connected');
+        bar.classList.add('connected');
+        txt.textContent = '☁️ 저장소: 내 구글 드라이브 (Drive 파일)';
+        if (sheetLink) sheetLink.style.display = 'none';
+      } else {
+        btn.textContent = '☁️ 드라이브 연결';
+        btn.classList.remove('connected');
+        bar.classList.remove('connected');
+        txt.textContent = '💾 현재 저장소: 브라우저 임시 저장소';
+        if (sheetLink) sheetLink.style.display = 'none';
+      }
+    }
+
+    function openDriveModal() {
+      var cfg = getDriveConfig();
+      document.getElementById('gasWebAppUrl').value = cfg.gasUrl || '';
+      document.getElementById('googleClientId').value = cfg.clientId || '';
+      switchDriveTab(cfg.mode === 'OAUTH' ? 'OAUTH' : 'GAS');
+      updateDriveStatusUI();
+      document.getElementById('driveModal').classList.add('open');
+    }
+
+    function closeDriveModal() {
+      document.getElementById('driveModal').classList.remove('open');
+    }
+
+    function switchDriveTab(tab) {
+      var isGas = (tab === 'GAS');
+      document.getElementById('driveTabGas').style.display = isGas ? 'block' : 'none';
+      document.getElementById('driveTabOauth').style.display = isGas ? 'none' : 'block';
+      document.getElementById('tabBtnGas').classList.toggle('active', isGas);
+      document.getElementById('tabBtnOauth').classList.toggle('active', !isGas);
+    }
+
+    function copyGasServerCode() {
+      var gasCode = [
+        "function doGet(e) {",
+        "  if (e && e.parameter && e.parameter.action === 'getExpenseData') {",
+        "    return ContentService.createTextOutput(JSON.stringify(getExpenseData())).setMimeType(ContentService.MimeType.JSON);",
+        "  }",
+        "  return ContentService.createTextOutput(JSON.stringify({ status: 'ok', message: 'Purrfect Drive Storage Ready' })).setMimeType(ContentService.MimeType.JSON);",
+        "}",
+        "function doPost(e) {",
+        "  try {",
+        "    var body = JSON.parse(e.postData.contents || '{}');",
+        "    var res = { success: false, message: 'Unknown action' };",
+        "    if (body.action === 'getExpenseData') res = getExpenseData();",
+        "    else if (body.action === 'saveExpense') res = saveExpense(body.payload || {});",
+        "    else if (body.action === 'uploadExpensesCsv') res = uploadExpensesCsv(body.csvText || '');",
+        "    else if (body.action === 'syncAll') res = syncAllExpenses(body.list || []);",
+        "    return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);",
+        "  } catch (err) {",
+        "    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() })).setMimeType(ContentService.MimeType.JSON);",
+        "  }",
+        "}",
+        "function getExpenseSheet() {",
+        "  var ss = SpreadsheetApp.getActiveSpreadsheet();",
+        "  if (!ss) {",
+        "    var props = PropertiesService.getUserProperties();",
+        "    var id = props.getProperty('PURRFECT_SHEET_ID');",
+        "    if (id) { try { ss = SpreadsheetApp.openById(id); } catch (e) { ss = null; } }",
+        "    if (!ss) { ss = SpreadsheetApp.create('Purrfect_Budget_지출원장'); props.setProperty('PURRFECT_SHEET_ID', ss.getId()); }",
+        "  }",
+        "  var sheet = ss.getSheetByName('지출내역');",
+        "  if (!sheet) { sheet = ss.insertSheet('지출내역'); sheet.appendRow(['ID', '날짜', '금액', '카테고리', '사용처', '결제수단', '메모']); }",
+        "  return sheet;",
+        "}",
+        "function saveExpense(data) {",
+        "  var sheet = getExpenseSheet();",
+        "  var lastRow = sheet.getLastRow();",
+        "  var newId = (lastRow <= 1) ? 1 : lastRow;",
+        "  var amount = Number(data.amount) || 0;",
+        "  sheet.appendRow([newId, data.date, amount, data.category, (data.place || '').trim(), data.payment || '--', data.memo || '']);",
+        "  var dateParts = String(data.date).split('-');",
+        "  return { success: true, message: parseInt(dateParts[1],10)+'월 '+parseInt(dateParts[2],10)+'일 '+data.place+' ('+amount.toLocaleString('ko-KR')+'원) 개인 드라이브에 저장됨' };",
+        "}",
+        "function uploadExpensesCsv(csvText) {",
+        "  var lines = Utilities.parseCsv(csvText);",
+        "  var sheet = getExpenseSheet();",
+        "  var currentId = (sheet.getLastRow() <= 1) ? 1 : sheet.getLastRow();",
+        "  var rows = [];",
+        "  var start = (lines[0][0].toLowerCase().indexOf('id') !== -1 || (lines[0][1] && lines[0][1].indexOf('날짜') !== -1)) ? 1 : 0;",
+        "  for (var i = start; i < lines.length; i++) {",
+        "    var r = lines[i]; if (!r || r.length < 2) continue;",
+        "    var off = (r.length >= 7 && !isNaN(Number(r[0]))) ? 1 : 0;",
+        "    if (!r[off]) continue;",
+        "    rows.push([currentId++, String(r[off]).trim(), Number(String(r[off+1]||'0').replace(/[^0-9.-]+/g,''))||0, String(r[off+2]||'기타').trim(), String(r[off+3]||'미지정').trim(), String(r[off+4]||'--').trim(), String(r[off+5]||'').trim()]);",
+        "  }",
+        "  if (rows.length > 0) sheet.getRange(sheet.getLastRow()+1, 1, rows.length, 7).setValues(rows);",
+        "  return { success: true, message: rows.length + '건이 개인 드라이브에 일괄 저장되었습니다.' };",
+        "}",
+        "function syncAllExpenses(list) {",
+        "  var sheet = getExpenseSheet();",
+        "  var currentId = (sheet.getLastRow() <= 1) ? 1 : sheet.getLastRow();",
+        "  var rows = [];",
+        "  for (var i = 0; i < list.length; i++) {",
+        "    var it = list[i]; if (!it || !it.date) continue;",
+        "    rows.push([currentId++, it.date, Number(it.amount)||0, it.category||'기타', it.place||'미지정', it.payment||'--', it.memo||'']);",
+        "  }",
+        "  if (rows.length > 0) sheet.getRange(sheet.getLastRow()+1, 1, rows.length, 7).setValues(rows);",
+        "  return { success: true, message: rows.length + '건이 개인 드라이브 시트에 동기화되었습니다.' };",
+        "}",
+        "function getExpenseData() {",
+        "  var sheet = getExpenseSheet();",
+        "  var lastRow = sheet.getLastRow();",
+        "  if (lastRow <= 1) return { success: true, list: [], sheetUrl: sheet.getParent().getUrl() };",
+        "  var vals = sheet.getRange(2, 1, lastRow - 1, 7).getValues();",
+        "  var list = vals.map(function(r) {",
+        "    var d = r[1];",
+        "    var dStr = (d instanceof Date) ? (d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')) : String(d||'');",
+        "    return { id: r[0], date: dStr, amount: Number(r[2])||0, category: String(r[3]||'기타'), place: String(r[4]||''), payment: String(r[5]||'--'), memo: String(r[6]||'') };",
+        "  });",
+        "  return { success: true, list: list, sheetUrl: sheet.getParent().getUrl() };",
+        "}"
+      ].join('\n');
+
+      navigator.clipboard.writeText(gasCode).then(function() {
+        showStatus('연동용 Code.gs 코드가 클립보드에 복사되었습니다! 스프레드시트 > 확장 프로그램 > Apps Script에 붙여넣어 배포해 주세요.', true);
+      }).catch(function() {
+        showStatus('클립보드 복사에 실패했습니다. GitHub 저장소의 Code.gs를 복사해 주세요.', false);
+      });
+    }
+
+    function saveAndTestGasUrl() {
+      var url = document.getElementById('gasWebAppUrl').value.trim();
+      if (!url || url.indexOf('https://script.google.com/') !== 0) {
+        showStatus('올바른 Google Apps Script 웹 앱 URL(https://script.google.com/.../exec)을 입력해 주세요.', false);
+        return;
+      }
+      var cfg = getDriveConfig();
+      cfg.mode = 'GAS';
+      cfg.gasUrl = url;
+      saveDriveConfig(cfg);
+      showStatus('개인 구글 드라이브 시트 연결 중...', true);
+
+      fetch(url + (url.indexOf('?') === -1 ? '?' : '&') + 'action=getExpenseData', {
+        method: 'GET',
+        redirect: 'follow'
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res && res.success) {
+          if (res.sheetUrl) {
+            cfg.sheetUrl = res.sheetUrl;
+            saveDriveConfig(cfg);
+          }
+          closeDriveModal();
+          showStatus('개인 구글 드라이브 스프레드시트와 성공적으로 연결되었습니다! (' + (res.list ? res.list.length : 0) + '건 로드됨)', true);
+          loadDataAndRender();
+        } else {
+          showStatus('드라이브 응답 오류: ' + (res && res.message ? res.message : '권한을 확인해 주세요.'), false);
+        }
+      })
+      .catch(function(err) {
+        showStatus('연결 실패: 웹 앱 배포 시 액세스 권한을 "모든 사용자"로 설정했는지 확인해 주세요.', false);
+      });
+    }
+
+    function syncLocalToDrive() {
+      var cfg = getDriveConfig();
+      var localList = loadLocalExpenses();
+      if (localList.length === 0) {
+        showStatus('브라우저에 저장된 로컬 지출 내역이 없습니다.', false);
+        return;
+      }
+      if (cfg.mode === 'GAS' && cfg.gasUrl) {
+        showStatus('브라우저 기록 ' + localList.length + '건을 개인 드라이브 시트로 내보내는 중...', true);
+        fetch(cfg.gasUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'syncAll', list: localList }),
+          redirect: 'follow'
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.success) {
+            closeDriveModal();
+            showStatus(res.message, true);
+            loadDataAndRender();
+          } else {
+            showStatus('동기화 실패: ' + (res && res.message ? res.message : ''), false);
+          }
+        })
+        .catch(function(err) {
+          showStatus('내보내기 오류: ' + err.toString(), false);
+        });
+      } else {
+        showStatus('먼저 Google Apps Script 웹 앱 URL을 연결해 주세요.', false);
+      }
+    }
+
+    // Google Drive REST API v3 직접 연동 (OAuth)
+    function connectGoogleDriveOAuth() {
+      var clientId = document.getElementById('googleClientId').value.trim();
+      if (!clientId) {
+        showStatus('Google Cloud OAuth Client ID를 입력해 주세요.', false);
+        return;
+      }
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+        showStatus('Google 로그인 스크립트를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.', false);
+        return;
+      }
+      var cfg = getDriveConfig();
+      cfg.clientId = clientId;
+      saveDriveConfig(cfg);
+
+      var tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: function(tokenResponse) {
+          if (tokenResponse && tokenResponse.access_token) {
+            googleOAuthToken = tokenResponse.access_token;
+            sessionStorage.setItem('purrfect_google_oauth_token', googleOAuthToken);
+            cfg.mode = 'OAUTH';
+            saveDriveConfig(cfg);
+            closeDriveModal();
+            showStatus('개인 Google Drive 계정 연결이 완료되었습니다!', true);
+            loadDataAndRender();
+          } else {
+            showStatus('Google 인증 토큰을 받지 못했습니다.', false);
           }
         }
-        function saveStored(list) {
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-          } catch (e) {}
-        }
+      });
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    function disconnectDriveStorage() {
+      var cfg = getDriveConfig();
+      cfg.mode = 'LOCAL';
+      saveDriveConfig(cfg);
+      googleOAuthToken = '';
+      sessionStorage.removeItem('purrfect_google_oauth_token');
+      closeDriveModal();
+      showStatus('브라우저 임시 저장소 모드로 전환되었습니다.', true);
+      loadDataAndRender();
+    }
+
+    async function driveApiLoadList() {
+      var q = encodeURIComponent("name = 'Purrfect_Budget_Data.json' and trashed = false");
+      var searchRes = await fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)', {
+        headers: { 'Authorization': 'Bearer ' + googleOAuthToken }
+      });
+      var searchData = await searchRes.json();
+      if (searchData.files && searchData.files.length > 0) {
+        googleDriveFileId = searchData.files[0].id;
+        localStorage.setItem('purrfect_google_drive_file_id', googleDriveFileId);
+        var fileRes = await fetch('https://www.googleapis.com/drive/v3/files/' + googleDriveFileId + '?alt=media', {
+          headers: { 'Authorization': 'Bearer ' + googleOAuthToken }
+        });
+        var list = await fileRes.json();
+        return Array.isArray(list) ? list : [];
+      }
+      return loadLocalExpenses();
+    }
+
+    async function driveApiSaveList(list) {
+      var metadata = { name: 'Purrfect_Budget_Data.json', mimeType: 'application/json' };
+      var form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' }));
+
+      var url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      var method = 'POST';
+      if (googleDriveFileId) {
+        url = 'https://www.googleapis.com/upload/drive/v3/files/' + googleDriveFileId + '?uploadType=multipart';
+        method = 'PATCH';
+      }
+      var res = await fetch(url, {
+        method: method,
+        headers: { 'Authorization': 'Bearer ' + googleOAuthToken },
+        body: form
+      });
+      var data = await res.json();
+      if (data && data.id) {
+        googleDriveFileId = data.id;
+        localStorage.setItem('purrfect_google_drive_file_id', googleDriveFileId);
+      }
+    }
+
+    // Apps Script 외부(Vercel 등)에서 google.script.run을 개인 구글 드라이브 / 로컬 저장소로 자동 라우팅
+    if (typeof window.google === 'undefined' || !window.google.script) {
+      (function() {
         function createRunner() {
           var onSuccess = function() {};
           var onFailure = function() {};
@@ -878,22 +1417,37 @@
             withSuccessHandler: function(fn) { onSuccess = fn; return this; },
             withFailureHandler: function(fn) { onFailure = fn; return this; },
             saveExpense: function(data) {
-              setTimeout(function() {
+              if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
+                return onSuccess({ success: false, message: '날짜 형식이 올바르지 않습니다. (예: 2026-11-04)' });
+              }
+              var amount = Number(data.amount);
+              if (isNaN(amount) || amount < 0 || String(data.amount).trim() === '') {
+                return onSuccess({ success: false, message: '금액은 0원 이상의 숫자로 입력해 주세요.' });
+              }
+              if (!data.category) {
+                return onSuccess({ success: false, message: '카테고리를 선택해 주세요.' });
+              }
+              if (!data.place || !data.place.trim()) {
+                return onSuccess({ success: false, message: '사용처를 입력해 주세요.' });
+              }
+
+              var cfg = getDriveConfig();
+              if (cfg.mode === 'GAS' && cfg.gasUrl) {
+                fetch(cfg.gasUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                  body: JSON.stringify({ action: 'saveExpense', payload: data }),
+                  redirect: 'follow'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(res) { onSuccess(res); })
+                .catch(function(err) { onFailure(err); });
+                return;
+              }
+
+              setTimeout(async function() {
                 try {
-                  if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
-                    return onSuccess({ success: false, message: '날짜 형식이 올바르지 않습니다. (예: 2026-11-04)' });
-                  }
-                  var amount = Number(data.amount);
-                  if (isNaN(amount) || amount < 0 || String(data.amount).trim() === '') {
-                    return onSuccess({ success: false, message: '금액은 0원 이상의 숫자로 입력해 주세요.' });
-                  }
-                  if (!data.category) {
-                    return onSuccess({ success: false, message: '카테고리를 선택해 주세요.' });
-                  }
-                  if (!data.place || !data.place.trim()) {
-                    return onSuccess({ success: false, message: '사용처를 입력해 주세요.' });
-                  }
-                  var list = loadStored();
+                  var list = (cfg.mode === 'OAUTH' && googleOAuthToken) ? await driveApiLoadList() : loadLocalExpenses();
                   var newId = list.length + 1;
                   var payment = (data.payment && data.payment.trim()) ? data.payment.trim() : '--';
                   var memo = (data.memo) ? String(data.memo).trim() : '';
@@ -906,17 +1460,35 @@
                     payment: payment,
                     memo: memo
                   });
-                  saveStored(list);
+                  saveLocalExpenses(list);
+                  if (cfg.mode === 'OAUTH' && googleOAuthToken) {
+                    await driveApiSaveList(list);
+                  }
                   var dateParts = data.date.split('-');
-                  var successMsg = parseInt(dateParts[1], 10) + '월 ' + parseInt(dateParts[2], 10) + '일 ' + data.place.trim() + ' (' + amount.toLocaleString('ko-KR') + '원) 저장되었습니다.';
+                  var targetLabel = (cfg.mode === 'OAUTH' && googleOAuthToken) ? '개인 구글 드라이브에 저장되었습니다.' : '저장되었습니다.';
+                  var successMsg = parseInt(dateParts[1], 10) + '월 ' + parseInt(dateParts[2], 10) + '일 ' + data.place.trim() + ' (' + amount.toLocaleString('ko-KR') + '원) ' + targetLabel;
                   onSuccess({ success: true, message: successMsg });
                 } catch (err) {
                   onFailure(err);
                 }
-              }, 120);
+              }, 80);
             },
             uploadExpensesCsv: function(csvText) {
-              setTimeout(function() {
+              var cfg = getDriveConfig();
+              if (cfg.mode === 'GAS' && cfg.gasUrl) {
+                fetch(cfg.gasUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                  body: JSON.stringify({ action: 'uploadExpensesCsv', csvText: csvText }),
+                  redirect: 'follow'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(res) { onSuccess(res); })
+                .catch(function(err) { onFailure(err); });
+                return;
+              }
+
+              setTimeout(async function() {
                 try {
                   if (!csvText || !csvText.trim()) {
                     return onSuccess({ success: false, message: 'CSV 파일 내용이 비어 있습니다.' });
@@ -925,7 +1497,7 @@
                   if (lines.length <= 1) {
                     return onSuccess({ success: false, message: '업로드할 데이터 행이 없습니다.' });
                   }
-                  var list = loadStored();
+                  var list = (cfg.mode === 'OAUTH' && googleOAuthToken) ? await driveApiLoadList() : loadLocalExpenses();
                   var currentId = list.length + 1;
                   var added = 0;
                   var startIndex = (lines[0][0].toLowerCase().indexOf('id') !== -1 || (lines[0][1] && lines[0][1].indexOf('날짜') !== -1)) ? 1 : 0;
@@ -954,29 +1526,55 @@
                   if (added === 0) {
                     return onSuccess({ success: false, message: '유효한 지출 내역 행을 찾을 수 없습니다.' });
                   }
-                  saveStored(list);
+                  saveLocalExpenses(list);
+                  if (cfg.mode === 'OAUTH' && googleOAuthToken) {
+                    await driveApiSaveList(list);
+                  }
                   onSuccess({ success: true, message: added + '건의 지출 내역을 성공적으로 일괄 등록했습니다.' });
                 } catch (err) {
                   onFailure(err);
                 }
-              }, 150);
+              }, 120);
             },
             getExpenseData: function() {
-              setTimeout(function() {
+              var cfg = getDriveConfig();
+              if (cfg.mode === 'GAS' && cfg.gasUrl) {
+                fetch(cfg.gasUrl + (cfg.gasUrl.indexOf('?') === -1 ? '?' : '&') + 'action=getExpenseData', {
+                  method: 'GET',
+                  redirect: 'follow'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(res) {
+                  if (res && res.sheetUrl) {
+                    cfg.sheetUrl = res.sheetUrl;
+                    saveDriveConfig(cfg);
+                  }
+                  onSuccess(res);
+                })
+                .catch(function(err) { onFailure(err); });
+                return;
+              }
+
+              setTimeout(async function() {
                 try {
-                  onSuccess({ success: true, list: loadStored() });
+                  var list = (cfg.mode === 'OAUTH' && googleOAuthToken) ? await driveApiLoadList() : loadLocalExpenses();
+                  onSuccess({ success: true, list: list });
                 } catch (err) {
                   onFailure(err);
                 }
-              }, 80);
+              }, 60);
             }
           };
         }
-        window.google = {
-          script: {
-            get run() { return createRunner(); }
+        window.google = window.google || {};
+        Object.defineProperty(window.google, 'script', {
+          configurable: true,
+          get: function() {
+            return {
+              get run() { return createRunner(); }
+            };
           }
-        };
+        });
       })();
     }
 
@@ -1006,6 +1604,7 @@
       var dd = String(today.getDate()).padStart(2, '0');
       document.getElementById('date').value = yyyy + '-' + mm + '-' + dd;
       
+      updateDriveStatusUI();
       initSwipeGesture();
       loadDataAndRender();
     });
