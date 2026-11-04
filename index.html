@@ -1,58 +1,1415 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Vibe App</title>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Purrfect Budget - 지출 관리</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .num-font {
+      font-family: 'JetBrains Mono', monospace;
+      font-feature-settings: "tnum" 1, "cv01" 1;
+    }
+
     body {
+      background-color: #0d0f13;
+      color: #e5e9f0;
       min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 12px;
+    }
+
+    /* 스마트폰 목업 섀시: 묵직한 건메탈 피니시 */
+    .phone-mockup {
+      position: relative;
+      width: 380px;
+      height: 780px;
+      background: #14171d;
+      border: 10px solid #090a0d;
+      border-radius: 44px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px #222733;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 다이내믹 아일랜드 */
+    .phone-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 22px;
+      background: #090a0d;
+      border-radius: 20px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+    .island-lens {
+      width: 8px;
+      height: 8px;
+      background: #1a2335;
+      border-radius: 50%;
+    }
+
+    /* 스마트폰 상태 바 */
+    .phone-status-bar {
+      height: 40px;
+      padding: 8px 24px 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #5d677d;
+      background: #181c24;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    /* 상단 헤더: 장식적 요소를 줄이고 단단한 원장 타이틀 느낌 연출 */
+    .app-header {
+      background: #181c24;
+      padding: 6px 18px 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #252b38;
+      flex-shrink: 0;
+      z-index: 90;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-symbol {
+      width: 32px;
+      height: 32px;
+      background: #202633;
+      border: 1px solid #313a4d;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at top, #1e1b4b, #09090b);
-      color: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      flex-shrink: 0;
     }
-    .card {
+
+    .brand-texts {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 10px;
+      font-weight: 800;
+      color: #34d399;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .page-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.3px;
+    }
+
+    .header-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #717d96;
+      border: 1px solid #28303f;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    /* 스와이프 뷰포트 */
+    .slider-viewport {
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      touch-action: pan-y pinch-zoom;
+    }
+
+    .slider-track {
+      display: flex;
+      width: 300%;
+      height: 100%;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+
+    .slide-page {
+      width: 33.3333%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 16px 14px 24px 14px;
+      background: #14171d;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .slide-page::-webkit-scrollbar {
+      width: 3px;
+    }
+    .slide-page::-webkit-scrollbar-thumb {
+      background: #2b3342;
+      border-radius: 3px;
+    }
+
+    /* 상태 메시지 */
+    #statusBox {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+    .status-success {
+      background: #0d281e;
+      color: #34d399;
+      border: 1px solid #164e3b;
+    }
+    .status-error {
+      background: #2f1519;
+      color: #f87171;
+      border: 1px solid #5c2229;
+    }
+
+    /* 폼 디자인 */
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #7d8799;
+      margin-bottom: 5px;
+    }
+    .req { color: #f87171; }
+
+    /* 대형 인풋: 군더더기 없는 원장 스타일 */
+    .amount-hero-wrap {
+      background: #1b2029;
+      border: 1px solid #28303f;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .amount-hero-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #647087;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .amount-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .amount-currency {
+      font-size: 22px;
+      font-weight: 800;
+      color: #34d399;
+    }
+    .amount-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    .amount-input::placeholder {
+      color: #3e485b;
+    }
+
+    input[type="text"], input[type="date"], select {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      border: 1px solid #262d3b;
+      border-radius: 8px;
+      font-size: 13px;
+      background-color: #1b2029;
+      color: #f1f5f9;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    input:focus, select:focus {
+      border-color: #34d399;
+    }
+
+    .btn-submit {
+      width: 100%;
+      height: 46px;
+      background: #34d399;
+      color: #061e14;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s;
+    }
+    .btn-submit:active {
+      background: #2bb882;
+    }
+    .btn-submit:disabled {
+      background: #232c3a;
+      color: #556277;
+      cursor: not-allowed;
+    }
+
+    /* CSV 파일 업로드 영역: 단정한 보더 박스 */
+    .csv-card {
+      margin-top: 18px;
+      padding: 12px;
+      background: #171b23;
+      border: 1px dashed #2c3545;
+      border-radius: 8px;
       text-align: center;
-      padding: 3rem 2.5rem;
-      border-radius: 1.5rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(12px);
-      max-width: 480px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    .csv-card p {
+      font-size: 11px;
+      color: #7b879c;
+      margin-bottom: 6px;
+    }
+    .csv-card input[type="file"] {
+      font-size: 11px;
+      color: #a4b1c7;
+      width: 100%;
+    }
+    .csv-btn {
+      margin-top: 6px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #252d3a;
+      color: #d8e2f0;
+      border: 1px solid #343f52;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* 목록 화면: 조용하고 단정한 필터 */
+    .filter-wrapper {
+      background: #181c24;
+      border: 1px solid #242c3b;
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 12px;
+    }
+    .type-filter-group {
+      display: flex;
+      gap: 4px;
+    }
+    .type-btn {
+      flex: 1;
+      height: 32px;
+      border: 1px solid #262e3d;
+      background: #14171d;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #7b879c;
+      cursor: pointer;
+    }
+    .type-btn.active {
+      background: #252e3d;
+      color: #34d399;
+      border-color: #34d399;
+    }
+    .cat-select-filter {
+      height: 34px;
+      font-size: 12px;
+      margin-top: 6px;
+      background-color: #14171d;
+      border-color: #262e3d;
+      color: #f1f5f9;
+    }
+
+    /* 날짜 구분선: 확실한 원장 인덱스 형태 */
+    .date-header-group {
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+    .date-header-group:first-child {
+      margin-top: 4px;
+    }
+    .date-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a1f29;
+      border-left: 3px solid #f59e0b;
+      border-radius: 4px;
+      padding: 7px 10px;
+    }
+    .date-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .date-text-highlight {
+      color: #fcd34d;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+    .day-sun { color: #f87171; font-weight: 700; }
+    .day-sat { color: #60a5fa; font-weight: 700; }
+    .day-weekday { color: #86efac; font-weight: 700; }
+
+    .date-banner-right {
+      font-size: 11px;
+      color: #717d96;
+    }
+    .date-banner-right strong {
+      color: #e2e8f0;
+      font-size: 12px;
+      margin-left: 3px;
+    }
+
+    /* 지출 아이템 행 */
+    .item-card {
+      background: #181d26;
+      border: 1px solid #232a38;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .item-left .item-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .item-left .item-sub {
+      font-size: 11px;
+      color: #6d788d;
+      margin-top: 3px;
     }
     .badge {
       display: inline-block;
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      background: rgba(99, 102, 241, 0.2);
-      color: #a5b4fc;
-      font-size: 0.85rem;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 4px;
+      margin-right: 5px;
+      letter-spacing: 0.5px;
+    }
+    .badge-fixed {
+      background: #2c1619;
+      color: #fca5a5;
+      border: 1px solid #572228;
+    }
+    .badge-var {
+      background: #0f271f;
+      color: #86efac;
+      border: 1px solid #16533c;
+    }
+    .item-amount {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    /* 요약 대시보드 */
+    .month-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      background: #181c24;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #242c3b;
+    }
+    .month-select-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #34d399;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .month-select {
+      height: 32px;
+      font-size: 12px;
+      font-weight: 700;
+      background-color: #14171d;
+      border: 1px solid #262e3d;
+      border-radius: 6px;
+      color: #f8fafc;
+      padding: 0 8px;
+    }
+
+    .dash-card {
+      background: #181d26;
+      border: 1px solid #232a38;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .dash-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #647087;
+      margin-bottom: 4px;
+    }
+    .dash-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+    }
+
+    /* 분할 바 */
+    .progress-wrap {
+      height: 8px;
+      background: #12151b;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      margin: 12px 0 8px 0;
+    }
+    .progress-fixed { background: #f87171; }
+    .progress-var { background: #34d399; }
+    .progress-desc {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
       font-weight: 600;
-      margin-bottom: 1.25rem;
     }
-    h1 {
-      font-size: 2.25rem;
-      margin-bottom: 0.75rem;
-      background: linear-gradient(135deg, #fff, #a5b4fc);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+
+    /* 원형 차트 영역 */
+    .chart-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
     }
-    p {
-      color: #94a3b8;
-      line-height: 1.6;
+    .chart-svg-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+    }
+    .chart-svg-wrap svg {
+      transform: rotate(-90deg);
+      border-radius: 50%;
+    }
+    .chart-center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+    .chart-center-title {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #647087;
+    }
+    .chart-center-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: #f8fafc;
+      margin-top: 1px;
+    }
+
+    .cat-legend-list {
+      width: 100%;
+      margin-top: 14px;
+    }
+    .cat-legend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 7px 0;
+      border-bottom: 1px solid #1f2533;
+      color: #d1d9e6;
+    }
+    .cat-legend-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .color-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* 폰 하단 탭 바 */
+    .phone-nav-bar {
+      height: 56px;
+      background: #14171d;
+      border-top: 1px solid #232938;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .nav-btn {
+      flex: 1;
+      height: 100%;
+      background: none;
+      border: none;
+      font-size: 11px;
+      font-weight: 700;
+      color: #5d677d;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: color 0.15s;
+    }
+    .nav-btn.active {
+      color: #34d399;
+      font-weight: 800;
+    }
+
+    /* 홈 인디케이터 */
+    .phone-home-indicator {
+      width: 100px;
+      height: 4px;
+      background: #394254;
+      border-radius: 2px;
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <span class="badge">GitHub + Vercel Connected</span>
-    <h1>My Vibe App 🚀</h1>
-    <p>바이브코딩 → GitHub Push → Vercel 자동 배포 루틴이 준비되었습니다!</p>
+
+  <div class="phone-mockup">
+    <!-- 다이내믹 아일랜드 -->
+    <div class="phone-island">
+      <div class="island-lens"></div>
+    </div>
+
+    <!-- 상태 바 -->
+    <div class="phone-status-bar num-font">
+      <span>09:41</span>
+      <span>5G 📶 100%</span>
+    </div>
+
+    <!-- 앱 상단 헤더 -->
+    <div class="app-header">
+      <div class="brand-left">
+        <div class="logo-symbol">
+          <!-- 기하학적 정밀 고양이/코인 미니멀 아이콘 -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="brand-texts">
+          <div class="brand-name">Purrfect Ledger</div>
+          <div class="page-title" id="pageTitle">지출 등록</div>
+        </div>
+      </div>
+      <div class="header-badge num-font" id="headerCount">v2.1</div>
+    </div>
+
+    <div id="statusBox" style="margin: 8px 14px 0 14px;"></div>
+
+    <!-- 슬라이드 뷰포트 -->
+    <div class="slider-viewport" id="sliderViewport">
+      <div class="slider-track" id="sliderTrack">
+
+        <!-- [슬라이드 0: 입력 화면] -->
+        <div class="slide-page" id="pageInput">
+          <form id="expenseForm" onsubmit="handleFormSubmit(event)">
+            <!-- 상단 하이라이트 금액 입력 -->
+            <div class="amount-hero-wrap">
+              <div class="amount-hero-label">Expense Amount</div>
+              <div class="amount-row">
+                <span class="amount-currency">₩</span>
+                <input type="number" id="amount" class="amount-input num-font" placeholder="0" min="0" required autofocus>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="category">카테고리<span class="req">*</span></label>
+              <select id="category" required>
+                <option value="" disabled selected>카테고리 선택</option>
+                <optgroup label="고정비">
+                  <option value="고정비(주거)">고정비(주거 - 월세/관리비)</option>
+                  <option value="고정비(통신)">고정비(통신 - 요금제/인터넷)</option>
+                  <option value="고정비(문화/여가)">고정비(문화/여가 - OTT/구독)</option>
+                  <option value="고정비(기타)">고정비(기타 - 클라우드/보험)</option>
+                </optgroup>
+                <optgroup label="변동비">
+                  <option value="식비">식비 (식당/카페/배달/마트)</option>
+                  <option value="교통">교통 (버스/지하철/택시)</option>
+                  <option value="쇼핑">쇼핑 (생필품/의류/도서)</option>
+                  <option value="문화/여가">문화/여가 (영화/게임/취미)</option>
+                  <option value="기타">기타 (약국/병원/소모품)</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="place">사용처<span class="req">*</span></label>
+              <input type="text" id="place" placeholder="예: 스타벅스, 식료품점" required>
+            </div>
+
+            <div class="form-group">
+              <label for="date">날짜<span class="req">*</span></label>
+              <input type="date" id="date" class="num-font" required>
+            </div>
+
+            <div class="form-group">
+              <label for="payment">결제수단</label>
+              <select id="payment">
+                <option value="--">선택 안 함 (--)</option>
+                <option value="신용/체크카드" selected>신용/체크카드</option>
+                <option value="간편결제">간편결제</option>
+                <option value="계좌이체">계좌이체</option>
+                <option value="현금">현금</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="memo">메모</label>
+              <input type="text" id="memo" placeholder="추가 내용 (선택)">
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-submit">등록 완료</button>
+          </form>
+
+          <div class="csv-card">
+            <p><strong>계좌/카드 CSV 일괄 등록</strong></p>
+            <input type="file" id="csvFileInput" accept=".csv">
+            <button type="button" class="csv-btn" onclick="handleCsvUpload()">CSV 파싱 및 업로드</button>
+          </div>
+        </div>
+
+        <!-- [슬라이드 1: 목록 화면] -->
+        <div class="slide-page" id="pageList">
+          <div class="filter-wrapper">
+            <div class="type-filter-group">
+              <button type="button" class="type-btn active" onclick="setTypeFilter('ALL', this)">전체</button>
+              <button type="button" class="type-btn" onclick="setTypeFilter('FIXED', this)">고정비</button>
+              <button type="button" class="type-btn" onclick="setTypeFilter('VAR', this)">변동비</button>
+            </div>
+
+            <select id="categoryDropdownFilter" class="cat-select-filter" onchange="handleCategoryFilterChange()">
+              <option value="ALL">모든 카테고리 보기</option>
+              <optgroup label="고정비">
+                <option value="고정비(주거)">고정비(주거)</option>
+                <option value="고정비(통신)">고정비(통신)</option>
+                <option value="고정비(문화/여가)">고정비(문화/여가)</option>
+                <option value="고정비(기타)">고정비(기타)</option>
+              </optgroup>
+              <optgroup label="변동비">
+                <option value="식비">식비</option>
+                <option value="교통">교통</option>
+                <option value="쇼핑">쇼핑</option>
+                <option value="문화/여가">문화/여가</option>
+                <option value="기타">기타</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div id="itemsContainer">
+            <p style="text-align:center; color:#5d677d; font-size:12px; padding:24px;">원장을 불러오는 중입니다...</p>
+          </div>
+        </div>
+
+        <!-- [슬라이드 2: 요약 화면] -->
+        <div class="slide-page" id="pageSummary">
+          <div class="month-select-wrap">
+            <span class="month-select-label">Period</span>
+            <select id="summaryMonthSelect" class="month-select num-font" onchange="handleMonthChange()"></select>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-label" id="dashMonthLabel">Total Outflow</div>
+            <div class="dash-value num-font" id="dashTotal">0원</div>
+            <div class="progress-wrap">
+              <div id="barFixed" class="progress-fixed" style="width: 50%;"></div>
+              <div id="barVar" class="progress-var" style="width: 50%;"></div>
+            </div>
+            <div class="progress-desc num-font">
+              <span id="labelFixed" style="color:#f87171;">고정비 0원 (0%)</span>
+              <span id="labelVar" style="color:#34d399;">변동비 0원 (0%)</span>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-label">Category Allocation</div>
+            <div class="chart-container">
+              <div class="chart-svg-wrap">
+                <svg id="pieSvg" width="140" height="140" viewBox="0 0 140 140"></svg>
+                <div class="chart-center-text">
+                  <div class="chart-center-title">TOP SPEND</div>
+                  <div class="chart-center-val" id="chartTopCategory">-</div>
+                </div>
+              </div>
+              <div class="cat-legend-list" id="catLegendList"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 하단 네비게이션 탭 -->
+    <div class="phone-nav-bar">
+      <button class="nav-btn active" onclick="goToSlide(0)">
+        <span style="font-size:13px;">✏️</span>
+        <span>입력</span>
+      </button>
+      <button class="nav-btn" onclick="goToSlide(1)">
+        <span style="font-size:13px;">📑</span>
+        <span>원장</span>
+      </button>
+      <button class="nav-btn" onclick="goToSlide(2)">
+        <span style="font-size:13px;">📊</span>
+        <span>분석</span>
+      </button>
+    </div>
+
+    <div class="phone-home-indicator"></div>
   </div>
+
+  <script>
+    // Vercel 등 일반 웹 브라우저 환경(Google Apps Script 외부)에서도 동일하게 동작하도록 localStorage 폴백 지원
+    if (typeof window.google === 'undefined' || !window.google.script) {
+      (function() {
+        var STORAGE_KEY = 'purrfect_budget_expenses_v1';
+        function loadStored() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : [];
+          } catch (e) {
+            return [];
+          }
+        }
+        function saveStored(list) {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+          } catch (e) {}
+        }
+        function createRunner() {
+          var onSuccess = function() {};
+          var onFailure = function() {};
+          return {
+            withSuccessHandler: function(fn) { onSuccess = fn; return this; },
+            withFailureHandler: function(fn) { onFailure = fn; return this; },
+            saveExpense: function(data) {
+              setTimeout(function() {
+                try {
+                  if (!data.date || !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
+                    return onSuccess({ success: false, message: '날짜 형식이 올바르지 않습니다. (예: 2026-11-04)' });
+                  }
+                  var amount = Number(data.amount);
+                  if (isNaN(amount) || amount < 0 || String(data.amount).trim() === '') {
+                    return onSuccess({ success: false, message: '금액은 0원 이상의 숫자로 입력해 주세요.' });
+                  }
+                  if (!data.category) {
+                    return onSuccess({ success: false, message: '카테고리를 선택해 주세요.' });
+                  }
+                  if (!data.place || !data.place.trim()) {
+                    return onSuccess({ success: false, message: '사용처를 입력해 주세요.' });
+                  }
+                  var list = loadStored();
+                  var newId = list.length + 1;
+                  var payment = (data.payment && data.payment.trim()) ? data.payment.trim() : '--';
+                  var memo = (data.memo) ? String(data.memo).trim() : '';
+                  list.push({
+                    id: newId,
+                    date: data.date,
+                    amount: amount,
+                    category: data.category,
+                    place: data.place.trim(),
+                    payment: payment,
+                    memo: memo
+                  });
+                  saveStored(list);
+                  var dateParts = data.date.split('-');
+                  var successMsg = parseInt(dateParts[1], 10) + '월 ' + parseInt(dateParts[2], 10) + '일 ' + data.place.trim() + ' (' + amount.toLocaleString('ko-KR') + '원) 저장되었습니다.';
+                  onSuccess({ success: true, message: successMsg });
+                } catch (err) {
+                  onFailure(err);
+                }
+              }, 120);
+            },
+            uploadExpensesCsv: function(csvText) {
+              setTimeout(function() {
+                try {
+                  if (!csvText || !csvText.trim()) {
+                    return onSuccess({ success: false, message: 'CSV 파일 내용이 비어 있습니다.' });
+                  }
+                  var lines = csvText.trim().split(/\r?\n/).map(function(line) { return line.split(','); });
+                  if (lines.length <= 1) {
+                    return onSuccess({ success: false, message: '업로드할 데이터 행이 없습니다.' });
+                  }
+                  var list = loadStored();
+                  var currentId = list.length + 1;
+                  var added = 0;
+                  var startIndex = (lines[0][0].toLowerCase().indexOf('id') !== -1 || (lines[0][1] && lines[0][1].indexOf('날짜') !== -1)) ? 1 : 0;
+                  for (var i = startIndex; i < lines.length; i++) {
+                    var row = lines[i];
+                    if (!row || row.length < 2) continue;
+                    var offset = (row.length >= 7 && !isNaN(Number(row[0]))) ? 1 : 0;
+                    var dateStr = String(row[offset] || '').trim();
+                    var amountVal = Number(String(row[offset + 1] || '0').replace(/[^0-9.-]+/g, ''));
+                    var categoryVal = String(row[offset + 2] || '기타').trim() || '기타';
+                    var placeVal = String(row[offset + 3] || '미지정').trim() || '미지정';
+                    var payVal = String(row[offset + 4] || '--').trim() || '--';
+                    var memoVal = String(row[offset + 5] || '').trim();
+                    if (!dateStr) continue;
+                    list.push({
+                      id: currentId++,
+                      date: dateStr,
+                      amount: isNaN(amountVal) ? 0 : amountVal,
+                      category: categoryVal,
+                      place: placeVal,
+                      payment: payVal,
+                      memo: memoVal
+                    });
+                    added++;
+                  }
+                  if (added === 0) {
+                    return onSuccess({ success: false, message: '유효한 지출 내역 행을 찾을 수 없습니다.' });
+                  }
+                  saveStored(list);
+                  onSuccess({ success: true, message: added + '건의 지출 내역을 성공적으로 일괄 등록했습니다.' });
+                } catch (err) {
+                  onFailure(err);
+                }
+              }, 150);
+            },
+            getExpenseData: function() {
+              setTimeout(function() {
+                try {
+                  onSuccess({ success: true, list: loadStored() });
+                } catch (err) {
+                  onFailure(err);
+                }
+              }, 80);
+            }
+          };
+        }
+        window.google = {
+          script: {
+            get run() { return createRunner(); }
+          }
+        };
+      })();
+    }
+
+    var currentSlideIndex = 0;
+    var pageTitles = ['지출 등록', '지출 내역 원장', '월간 지출 분석'];
+
+    var globalExpenseList = [];
+    var selectedTypeFilter = 'ALL';
+    var selectedCategoryFilter = 'ALL';
+    var selectedSummaryMonth = '';
+
+    // Anti-slop 전용 절제된 팔레트 (테라코타, 에메랄드, 브라스, 슬레이트, 인디고)
+    var chartPalette = [
+      '#34d399', '#f87171', '#38bdf8', '#fbbf24', 
+      '#a78bfa', '#fb923c', '#94a3b8', '#ec4899', '#6ee7b7'
+    ];
+
+    window.onerror = function(msg, url, lineNo) {
+      showStatus('오류: ' + msg + ' (' + lineNo + '행)', false);
+      return false;
+    };
+
+    window.addEventListener('DOMContentLoaded', function() {
+      var today = new Date();
+      var yyyy = today.getFullYear();
+      var mm = String(today.getMonth() + 1).padStart(2, '0');
+      var dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('date').value = yyyy + '-' + mm + '-' + dd;
+      
+      initSwipeGesture();
+      loadDataAndRender();
+    });
+
+    function goToSlide(index) {
+      if (index < 0) index = 0;
+      if (index > 2) index = 2;
+      currentSlideIndex = index;
+
+      var track = document.getElementById('sliderTrack');
+      track.style.transform = 'translateX(-' + (index * 33.333333) + '%)';
+
+      var navBtns = document.querySelectorAll('.nav-btn');
+      navBtns.forEach(function(btn, i) {
+        if (i === index) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      document.getElementById('pageTitle').textContent = pageTitles[index];
+      document.getElementById('statusBox').style.display = 'none';
+
+      if (index === 1 || index === 2) {
+        if (globalExpenseList.length === 0) loadDataAndRender();
+        else {
+          renderList();
+          renderSummary();
+        }
+      }
+    }
+
+    function initSwipeGesture() {
+      var viewport = document.getElementById('sliderViewport');
+      var startX = 0;
+      var startY = 0;
+      var distX = 0;
+      var distY = 0;
+      var isSwiping = false;
+
+      viewport.addEventListener('touchstart', function(e) {
+        var touch = e.touches[0];
+        startX = touch.pageX;
+        startY = touch.pageY;
+        distX = 0;
+        distY = 0;
+        isSwiping = true;
+      }, { passive: true });
+
+      viewport.addEventListener('touchmove', function(e) {
+        if (!isSwiping) return;
+        var touch = e.touches[0];
+        distX = touch.pageX - startX;
+        distY = touch.pageY - startY;
+      }, { passive: true });
+
+      viewport.addEventListener('touchend', function() {
+        if (!isSwiping) return;
+        isSwiping = false;
+        if (Math.abs(distX) > 45 && Math.abs(distX) > Math.abs(distY) * 1.3) {
+          if (distX < 0 && currentSlideIndex < 2) goToSlide(currentSlideIndex + 1);
+          else if (distX > 0 && currentSlideIndex > 0) goToSlide(currentSlideIndex - 1);
+        }
+      });
+    }
+
+    function showStatus(text, isSuccess) {
+      var box = document.getElementById('statusBox');
+      box.textContent = text;
+      box.className = isSuccess ? 'status-success' : 'status-error';
+      box.style.display = 'block';
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      var payload = {
+        date: document.getElementById('date').value,
+        amount: Number(document.getElementById('amount').value),
+        category: document.getElementById('category').value,
+        place: document.getElementById('place').value.trim(),
+        payment: document.getElementById('payment').value,
+        memo: document.getElementById('memo').value.trim()
+      };
+
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '처리 중...';
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btn.disabled = false;
+          btn.textContent = '등록 완료';
+          if (res.success) {
+            showStatus(res.message, true);
+            document.getElementById('amount').value = '';
+            document.getElementById('place').value = '';
+            document.getElementById('memo').value = '';
+            document.getElementById('category').selectedIndex = 0;
+            loadDataAndRender();
+          } else {
+            showStatus('저장 실패: ' + res.message, false);
+          }
+        })
+        .withFailureHandler(function(err) {
+          btn.disabled = false;
+          btn.textContent = '등록 완료';
+          showStatus('오류: ' + err.toString(), false);
+        })
+        .saveExpense(payload);
+    }
+
+    function handleCsvUpload() {
+      var fileInput = document.getElementById('csvFileInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        showStatus('업로드할 CSV 파일을 선택해 주세요.', false);
+        return;
+      }
+
+      var file = fileInput.files[0];
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var text = e.target.result;
+        showStatus('CSV 업로드 중...', true);
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (res.success) {
+              showStatus(res.message, true);
+              fileInput.value = '';
+              loadDataAndRender();
+            } else {
+              showStatus('업로드 실패: ' + res.message, false);
+            }
+          })
+          .withFailureHandler(function(err) {
+            showStatus('업로드 오류: ' + err.toString(), false);
+          })
+          .uploadExpensesCsv(text);
+      };
+      reader.readAsText(file);
+    }
+
+    function loadDataAndRender() {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res.success) {
+            globalExpenseList = res.list || [];
+            globalExpenseList.sort(function(a, b) {
+              return new Date(b.date) - new Date(a.date);
+            });
+            initMonthDropdown();
+            renderList();
+            renderSummary();
+            document.getElementById('headerCount').textContent = globalExpenseList.length + ' 건';
+          } else {
+            showStatus('조회 오류: ' + res.message, false);
+          }
+        })
+        .withFailureHandler(function(err) {
+          showStatus('오류: ' + err.toString(), false);
+        })
+        .getExpenseData();
+    }
+
+    function setTypeFilter(type, btnEl) {
+      selectedTypeFilter = type;
+      document.querySelectorAll('.type-btn').forEach(function(el) { el.classList.remove('active'); });
+      btnEl.classList.add('active');
+      renderList();
+    }
+
+    function handleCategoryFilterChange() {
+      selectedCategoryFilter = document.getElementById('categoryDropdownFilter').value;
+      renderList();
+    }
+
+    function itemIsFixed(cat) {
+      return (cat || '').indexOf('고정비') !== -1;
+    }
+
+    function parseDateHeaderInfo(dateStr) {
+      var parts = dateStr.split('-');
+      var yyyy = parts[0];
+      var mm = parts[1];
+      var dd = parts[2];
+      
+      var d = new Date(dateStr);
+      var dayIdx = d.getDay();
+      var dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      var dayName = dayNames[dayIdx] || '';
+
+      var dayClass = 'day-weekday';
+      if (dayIdx === 0) dayClass = 'day-sun';
+      else if (dayIdx === 6) dayIdx = 'day-sat';
+
+      return {
+        formattedDate: yyyy + '.' + mm + '.' + dd,
+        dayText: '(' + dayName + ')',
+        dayClass: dayClass
+      };
+    }
+
+    function renderList() {
+      var container = document.getElementById('itemsContainer');
+      var filtered = globalExpenseList.filter(function(item) {
+        var isFixed = itemIsFixed(item.category);
+        if (selectedTypeFilter === 'FIXED' && !isFixed) return false;
+        if (selectedTypeFilter === 'VAR' && isFixed) return false;
+        if (selectedCategoryFilter !== 'ALL' && item.category !== selectedCategoryFilter) {
+          return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#5d677d; font-size:12px; padding:24px;">해당 조건의 기록이 없습니다.</p>';
+        return;
+      }
+
+      var groupedByDate = {};
+      var dateOrder = [];
+
+      for (var i = 0; i < filtered.length; i++) {
+        var item = filtered[i];
+        var d = item.date;
+        if (!groupedByDate[d]) {
+          groupedByDate[d] = { items: [], dailyTotal: 0 };
+          dateOrder.push(d);
+        }
+        groupedByDate[d].items.push(item);
+        groupedByDate[d].dailyTotal += item.amount;
+      }
+
+      var html = '';
+      for (var j = 0; j < dateOrder.length; j++) {
+        var dStr = dateOrder[j];
+        var group = groupedByDate[dStr];
+        var headerInfo = parseDateHeaderInfo(dStr);
+
+        html += '<div class="date-header-group">';
+        html += '  <div class="date-banner">';
+        html += '    <div class="date-banner-left">';
+        html += '      <span class="date-text-highlight num-font">' + headerInfo.formattedDate + '</span>';
+        html += '      <span class="' + headerInfo.dayClass + '">' + headerInfo.dayText + '</span>';
+        html += '    </div>';
+        html += '    <div class="date-banner-right num-font">';
+        html += '      합계 <strong>' + group.dailyTotal.toLocaleString('ko-KR') + '원</strong>';
+        html += '    </div>';
+        html += '  </div>';
+
+        for (var k = 0; k < group.items.length; k++) {
+          var it = group.items[k];
+          var isFixed = itemIsFixed(it.category);
+          var badgeClass = isFixed ? 'badge-fixed' : 'badge-var';
+          var badgeText = isFixed ? '고정' : '변동';
+          var memoDisplay = it.memo ? ' · ' + it.memo : '';
+
+          html += '<div class="item-card">' +
+            '<div class="item-left">' +
+              '<div class="item-title">' +
+                '<span class="badge ' + badgeClass + '">' + badgeText + '</span>' +
+                it.place +
+              '</div>' +
+              '<div class="item-sub">' + it.category + ' (' + it.payment + ')' + memoDisplay + '</div>' +
+            '</div>' +
+            '<div class="item-amount num-font">' + it.amount.toLocaleString('ko-KR') + '원</div>' +
+          '</div>';
+        }
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    function initMonthDropdown() {
+      var select = document.getElementById('summaryMonthSelect');
+      var monthSet = {};
+      var months = [];
+
+      for (var i = 0; i < globalExpenseList.length; i++) {
+        var d = globalExpenseList[i].date;
+        if (d && d.length >= 7) {
+          var m = d.substring(0, 7);
+          if (!monthSet[m]) {
+            monthSet[m] = true;
+            months.push(m);
+          }
+        }
+      }
+
+      months.sort().reverse();
+
+      if (months.length === 0) {
+        var now = new Date();
+        var currentM = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        months.push(currentM);
+      }
+
+      if (!selectedSummaryMonth || months.indexOf(selectedSummaryMonth) === -1) {
+        selectedSummaryMonth = months[0];
+      }
+
+      var optionsHtml = '';
+      for (var j = 0; j < months.length; j++) {
+        var ym = months[j];
+        var parts = ym.split('-');
+        var label = parts[0] + '.' + parts[1];
+        var isSelected = (ym === selectedSummaryMonth) ? 'selected' : '';
+        optionsHtml += '<option value="' + ym + '" ' + isSelected + '>' + label + '</option>';
+      }
+      select.innerHTML = optionsHtml;
+    }
+
+    function handleMonthChange() {
+      selectedSummaryMonth = document.getElementById('summaryMonthSelect').value;
+      renderSummary();
+    }
+
+    function renderSummary() {
+      if (!selectedSummaryMonth) return;
+
+      var parts = selectedSummaryMonth.split('-');
+      var displayMonthName = parts[0] + '년 ' + parseInt(parts[1], 10) + '월';
+      document.getElementById('dashMonthLabel').textContent = displayMonthName + ' 지출 총액';
+
+      var monthlyList = globalExpenseList.filter(function(item) {
+        return item.date && item.date.indexOf(selectedSummaryMonth) === 0;
+      });
+
+      var total = 0;
+      var fixedSum = 0;
+      var varSum = 0;
+      var catMap = {};
+
+      for (var i = 0; i < monthlyList.length; i++) {
+        var it = monthlyList[i];
+        var amt = it.amount;
+        total += amt;
+
+        if (itemIsFixed(it.category)) {
+          fixedSum += amt;
+        } else {
+          varSum += amt;
+        }
+
+        catMap[it.category] = (catMap[it.category] || 0) + amt;
+      }
+
+      document.getElementById('dashTotal').textContent = total.toLocaleString('ko-KR') + '원';
+
+      var fixedRate = total > 0 ? Math.round((fixedSum / total) * 100) : 0;
+      var varRate = 100 - fixedRate;
+
+      document.getElementById('barFixed').style.width = fixedRate + '%';
+      document.getElementById('barVar').style.width = varRate + '%';
+      document.getElementById('labelFixed').textContent = '고정비 ' + fixedSum.toLocaleString('ko-KR') + '원 (' + fixedRate + '%)';
+      document.getElementById('labelVar').textContent = '변동비 ' + varSum.toLocaleString('ko-KR') + '원 (' + varRate + '%)';
+
+      var catList = [];
+      for (var k in catMap) {
+        catList.push({ name: k, sum: catMap[k] });
+      }
+      catList.sort(function(a, b) { return b.sum - a.sum; });
+
+      if (catList.length > 0) {
+        document.getElementById('chartTopCategory').textContent = catList[0].name;
+      } else {
+        document.getElementById('chartTopCategory').textContent = '-';
+      }
+
+      renderSvgDonutChart(catList, total);
+
+      var legendHtml = '';
+      if (catList.length === 0) {
+        legendHtml = '<p style="text-align:center; color:#5d677d; font-size:12px; padding:12px;">지출 내역이 없습니다.</p>';
+      } else {
+        for (var j = 0; j < catList.length; j++) {
+          var cat = catList[j];
+          var pct = total > 0 ? ((cat.sum / total) * 100).toFixed(1) : 0;
+          var color = chartPalette[j % chartPalette.length];
+
+          legendHtml += '<div class="cat-legend-item">' +
+            '<div class="cat-legend-left">' +
+              '<span class="color-dot" style="background-color:' + color + ';"></span>' +
+              '<span>' + cat.name + '</span>' +
+            '</div>' +
+            '<div class="num-font">' +
+              '<strong>' + cat.sum.toLocaleString('ko-KR') + '원</strong> ' +
+              '<span style="color:#647087; font-size:10.5px;">(' + pct + '%)</span>' +
+            '</div>' +
+          '</div>';
+        }
+      }
+      document.getElementById('catLegendList').innerHTML = legendHtml;
+    }
+
+    function renderSvgDonutChart(catList, total) {
+      var svg = document.getElementById('pieSvg');
+      svg.innerHTML = '';
+
+      var cx = 70;
+      var cy = 70;
+      var r = 50;
+      var strokeWidth = 18;
+      var circumference = 2 * Math.PI * r;
+
+      if (total <= 0 || catList.length === 0) {
+        var emptyCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        emptyCircle.setAttribute('cx', cx);
+        emptyCircle.setAttribute('cy', cy);
+        emptyCircle.setAttribute('r', r);
+        emptyCircle.setAttribute('fill', 'transparent');
+        emptyCircle.setAttribute('stroke', '#212836');
+        emptyCircle.setAttribute('stroke-width', strokeWidth);
+        svg.appendChild(emptyCircle);
+        return;
+      }
+
+      var accumulatedOffset = 0;
+
+      for (var i = 0; i < catList.length; i++) {
+        var ratio = catList[i].sum / total;
+        var dashLength = ratio * circumference;
+        var color = chartPalette[i % chartPalette.length];
+
+        var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', r);
+        circle.setAttribute('fill', 'transparent');
+        circle.setAttribute('stroke', color);
+        circle.setAttribute('stroke-width', strokeWidth);
+        circle.setAttribute('stroke-dasharray', dashLength + ' ' + (circumference - dashLength));
+        circle.setAttribute('stroke-dashoffset', -accumulatedOffset);
+
+        svg.appendChild(circle);
+        accumulatedOffset += dashLength;
+      }
+    }
+  </script>
 </body>
 </html>
