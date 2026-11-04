@@ -625,9 +625,38 @@
       pointer-events: none;
       z-index: 1000;
     }
+
+    /* 우측 상단 Vercel 버전 표시 배지 */
+    .vercel-top-badge {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #34d399;
+      background: rgba(24, 28, 36, 0.9);
+      border: 1px solid #28303f;
+      padding: 4px 10px;
+      border-radius: 6px;
+      z-index: 2000;
+      letter-spacing: 0.2px;
+    }
+    .header-right-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+    .header-vercel-tag {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #34d399;
+      letter-spacing: -0.2px;
+    }
   </style>
 </head>
 <body>
+  <div class="vercel-top-badge">vercel버전</div>
 
   <div class="phone-mockup">
     <!-- 다이내믹 아일랜드 -->
@@ -655,7 +684,10 @@
           <div class="page-title" id="pageTitle">지출 등록</div>
         </div>
       </div>
-      <div class="header-badge num-font" id="headerCount">v2.1</div>
+      <div class="header-right-wrap">
+        <span class="header-vercel-tag">vercel버전</span>
+        <div class="header-badge num-font" id="headerCount">v2.1</div>
+      </div>
     </div>
 
     <div id="statusBox" style="margin: 8px 14px 0 14px;"></div>
